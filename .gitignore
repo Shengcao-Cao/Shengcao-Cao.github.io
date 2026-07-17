@@ -1,9 +1,5 @@
-# project
-_site
-.sass-cache
-.vagrant
-
-# general
+# macOS
 .DS_Store
-Thumbs.db
-ehthumbs.db
+
+# CV — kept locally, not published to the repo or the page
+assets/cv/
