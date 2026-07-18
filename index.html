@@ -15,6 +15,19 @@
 
   <link rel="icon" href="assets/img/portrait.jpg" />
 
+  <!-- Resolve theme before first paint to avoid a flash of the wrong mode -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t !== "light" && t !== "dark") {
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,6 +46,10 @@
         <a href="#experience">Experience</a>
         <a href="#education">Education</a>
         <a class="nav-cta" href="#publications">Publications</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle light / dark">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
       </nav>
     </div>
   </header>
@@ -73,8 +90,24 @@
           </div>
 
           <div class="portrait-wrap">
-            <img class="portrait" src="assets/img/portrait.jpg" width="1000" height="1000"
-                 alt="Portrait of Shengcao Cao with two cats" />
+            <div class="portrait-card" role="button" tabindex="0" aria-pressed="false" aria-label="Flip the photo to meet the cats">
+              <span class="portrait-inner">
+                <span class="portrait-face portrait-front">
+                  <img class="portrait" src="assets/img/portrait.jpg" width="1000" height="1000"
+                       alt="Shengcao Cao with his two cats, Kaka and Dola" />
+                  <span class="flip-hint" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                  </span>
+                </span>
+                <span class="portrait-face portrait-back">
+                  <span class="cat-caption">
+                    <b>Figure&nbsp;1.</b> Left: <b>Kaka</b> &ldquo;好运来&rdquo;, a five-year-old orange tabby.
+                    Right: <b>Dola</b> &ldquo;多乐&rdquo;, a one-year-old ragdoll.
+                    Middle: their human, <b>Shengcao</b><a class="secret" href="https://corrine-wu.vercel.app/" target="_blank" rel="noopener" aria-label="A little something"><sub class="heart">&hearts;</sub></a>
+                  </span>
+                </span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -244,7 +277,7 @@
           </li>
 
           <li class="pub">
-            <h3 class="title"><a href="https://github.com/shengcao-cao/cmt" target="_blank" rel="noopener">Contrastive Mean Teacher for Domain Adaptive Object Detectors</a></h3>
+            <h3 class="title"><a href="https://github.com/Shengcao-Cao/CMT" target="_blank" rel="noopener">Contrastive Mean Teacher for Domain Adaptive Object Detectors</a></h3>
             <p class="authors"><span class="me">Shengcao Cao</span>, Dhiraj Joshi, Liang-Yan Gui, Yu-Xiong Wang</p>
             <p class="venue">CVPR 2023</p>
           </li>
@@ -278,6 +311,51 @@
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Flip the headshot to reveal the cat caption
+    (function () {
+      var card = document.querySelector(".portrait-card");
+      if (!card) return;
+      function flip() {
+        var flipped = card.classList.toggle("flipped");
+        card.setAttribute("aria-pressed", flipped);
+        card.classList.remove("animating");
+        void card.offsetWidth;              // reflow so the pop animation restarts
+        card.classList.add("animating");
+      }
+      card.addEventListener("click", function (e) {
+        if (e.target.closest(".secret")) return;   // let the hidden link do its thing
+        flip();
+      });
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); flip(); }
+      });
+      card.addEventListener("animationend", function () { card.classList.remove("animating"); });
+    })();
+
+    // Theme toggle (theme is already applied pre-paint by the <head> script)
+    (function () {
+      var root = document.documentElement;
+      var btn = document.querySelector(".theme-toggle");
+      if (!btn) return;
+      function sync() { btn.setAttribute("aria-pressed", root.getAttribute("data-theme") === "dark"); }
+      sync();
+      btn.addEventListener("click", function () {
+        var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("theme", next); } catch (e) {}
+        sync();
+      });
+      // follow system changes until the user makes an explicit choice
+      try {
+        matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+          if (localStorage.getItem("theme") !== "light" && localStorage.getItem("theme") !== "dark") {
+            root.setAttribute("data-theme", e.matches ? "dark" : "light");
+            sync();
+          }
+        });
+      } catch (e) {}
+    })();
 
     (function () {
       var els = document.querySelectorAll(".reveal");
